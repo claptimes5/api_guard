@@ -3,6 +3,7 @@
 require 'api_guard/engine'
 require 'api_guard/route_mapper'
 require 'api_guard/modules'
+require 'active_support/core_ext/numeric/time'
 
 module ApiGuard
   autoload :AppSecretKey, 'api_guard/app_secret_key'
