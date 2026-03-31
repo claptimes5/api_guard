@@ -64,13 +64,13 @@ describe 'Refresh token - Customer', type: :request do
         expect(response.headers['Expire-At']).to be_present
         expect(response.headers['Refresh-Token']).to be_present
       end
-      
+
       it 'should generate new access token - valid access token and refresh token with no expire_at' do
         customer = create(:user)
         access_token, refresh_token = jwt_and_refresh_token(customer, 'user')
-        
+
         # previous versions did not have an expire_at field. those tokens should still be valid
-        RefreshToken.find_by_token(refresh_token).update_attributes(expire_at: nil)
+        RefreshToken.find_by_token(refresh_token).update(expire_at: nil)
 
         post '/customers/tokens', headers: { 'Authorization': "Bearer #{access_token}", 'Refresh-Token': refresh_token }
 
@@ -92,7 +92,7 @@ describe 'Refresh token - Customer', type: :request do
         expect(response.headers['Refresh-Token']).to be_present
       end
     end
-    
-    
+
+
   end
 end
