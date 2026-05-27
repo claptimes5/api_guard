@@ -6,6 +6,8 @@ module ApiGuard
   module JwtAuth
     # Common module for JWT operations
     module JsonWebToken
+      ALGORITHM = 'HS256'
+
       def current_time
         @current_time ||= Time.now.utc
       end
@@ -20,13 +22,13 @@ module ApiGuard
 
       # Encode the payload with the secret key and return the JWT token
       def encode(payload)
-        JWT.encode(payload, ApiGuard.token_signing_secret)
+        JWT.encode(payload, ApiGuard.token_signing_secret, ALGORITHM)
       end
 
       # Decode the JWT token and return the payload
       def decode(token, verify = true)
         HashWithIndifferentAccess.new(
-          JWT.decode(token, ApiGuard.token_signing_secret, verify, verify_iat: true)[0]
+          JWT.decode(token, ApiGuard.token_signing_secret, verify, algorithm: ALGORITHM, verify_iat: true)[0]
         )
       end
 

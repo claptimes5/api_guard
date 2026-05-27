@@ -9,8 +9,10 @@ require 'api_guard'
 
 module Dummy
   class Application < Rails::Application
-    # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 5.0
+    # Upgrade defaults for the current Rails series.
+    config.load_defaults 8.1
+    # treat dummy as API only to avoid unknown configs like `assets`
+    config.api_only = true
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration can go into files in config/initializers

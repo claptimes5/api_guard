@@ -17,7 +17,7 @@ module ActionDispatch
         options[:path] = options[:path] || routes_for
 
         api_guard_scope(routes_for) do |mapped_resource|
-          scope options do
+          scope(**options) do
             generate_routes(mapped_resource, controller_options, controllers)
           end
         end
