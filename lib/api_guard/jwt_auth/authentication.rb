@@ -31,12 +31,10 @@ module ApiGuard
 
         # Render error response only if no resource found and no previous render happened
         render_error(401, message: I18n.t('api_guard.access_token.invalid')) if !current_resource && !performed?
-      rescue JWT::DecodeError => e
-        if e.message == 'Signature has expired'
-          render_error(401, message: I18n.t('api_guard.access_token.expired'))
-        else
-          render_error(401, message: I18n.t('api_guard.access_token.invalid'))
-        end
+      rescue JWT::ExpiredSignature
+        render_error(401, message: I18n.t('api_guard.access_token.expired'))
+      rescue JWT::DecodeError
+        render_error(401, message: I18n.t('api_guard.access_token.invalid'))
       end
 
       # Decode the JWT token

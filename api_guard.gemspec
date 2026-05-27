@@ -21,14 +21,14 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'ostruct'
   s.add_dependency 'rails', '>= 6.0', '< 9.0'
-  s.add_dependency 'jwt', '~> 2.2'
+  s.add_dependency 'jwt', '>= 2.2', '< 4.0'
 
   s.add_development_dependency 'bcrypt', '~> 3.1'
   s.add_development_dependency 'factory_bot_rails', '~> 6.5'
-  s.add_development_dependency 'rails', '~> 8.0'
+  s.add_development_dependency 'rails', '~> 8.1'
   s.add_development_dependency 'listen', '~> 3.2'
   s.add_development_dependency 'rspec-rails', '~> 8.0'
-  s.add_development_dependency 'rubocop', '~> 0.75.1'
-  s.add_development_dependency 'simplecov', '0.17'
+  s.add_development_dependency 'rubocop', '~> 1.86.2'
+  s.add_development_dependency 'simplecov', '0.22'
   s.add_development_dependency 'sqlite3', '>= 2.1'
 end
