@@ -34,7 +34,7 @@ module ApiGuard
         HashWithIndifferentAccess.new(
           JWT.decode(
             token, ApiGuard.token_signing_secret, true,
-            algorithm: ALGORITHM, verify_iat: true, verify_expiration: verify_expiry
+            algorithms: [ALGORITHM], verify_iat: true, verify_expiration: verify_expiry
           )[0]
         )
       end
