@@ -41,8 +41,8 @@ module ApiGuard
       # and don't verify token expiry for refresh token API request
       def decode_token
         # TODO: Set token refresh controller dynamic
-        verify_token = (controller_name != 'tokens' || action_name != 'create')
-        @decoded_token = decode(@token, verify_token)
+        verify_expiry = (controller_name != 'tokens' || action_name != 'create')
+        @decoded_token = decode(@token, verify_expiry)
       end
 
       # Returns whether the JWT token is issued after the last password change

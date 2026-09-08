@@ -26,9 +26,16 @@ module ApiGuard
       end
 
       # Decode the JWT token and return the payload
-      def decode(token, verify = true)
+      #
+      # The signature is always verified, against an explicit algorithm allowlist.
+      # 'verify_expiry' may be set to false only by the token refresh path, which
+      # legitimately needs to accept an expired but authentically signed token.
+      def decode(token, verify_expiry = true)
         HashWithIndifferentAccess.new(
-          JWT.decode(token, ApiGuard.token_signing_secret, verify, algorithm: ALGORITHM, verify_iat: true)[0]
+          JWT.decode(
+            token, ApiGuard.token_signing_secret, true,
+            algorithm: ALGORITHM, verify_iat: true, verify_expiration: verify_expiry
+          )[0]
         )
       end
 

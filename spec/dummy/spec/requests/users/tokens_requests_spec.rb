@@ -25,7 +25,7 @@ describe 'Refresh token - User', type: :request do
 
       it 'should return 401 - missing refresh token' do
         user = create(:user)
-        access_token = jwt_and_refresh_token(user, 'user')
+        access_token = jwt_and_refresh_token(user, 'user')[0]
 
         post '/users/tokens', headers: { 'Authorization': "Bearer #{access_token}" }
 
@@ -117,6 +117,27 @@ describe 'Refresh token - User', type: :request do
         expect(response.headers['Access-Token']).to be_present
         expect(response.headers['Expire-At']).to be_present
         expect(response.headers['Refresh-Token']).to be_present
+      end
+    end
+
+    context 'with a forged access token' do
+      # A1: this endpoint used to decode with verification disabled entirely,
+      # so an access token signed with any secret at all was accepted here.
+      it 'should return 401 - access token signed with a different secret' do
+        user = create(:user)
+        refresh_token = jwt_and_refresh_token(user, 'user')[1]
+        forged_token = JWT.encode(
+          { user_id: user.id, exp: 1.hour.from_now.to_i, iat: Time.now.to_i },
+          'a-completely-different-secret',
+          'HS256'
+        )
+
+        post '/users/tokens', headers: {
+          'Authorization': "Bearer #{forged_token}", 'Refresh-Token': refresh_token
+        }
+
+        expect(response).to have_http_status(401)
+        expect(response_errors).to eq('Invalid access token')
       end
     end
   end
