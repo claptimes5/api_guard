@@ -2,8 +2,8 @@
 
 require 'dummy/spec/rails_helper'
 
-# Regression guard for audit finding A2: the algorithm allowlist must be
-# explicit in this gem, not inherited from the 'jwt' gem's current defaults.
+# Regression guards for audit findings A2 (explicit algorithm allowlist) and
+# A1 (the refresh path must relax expiry only, never signature verification).
 describe ApiGuard::JwtAuth::JsonWebToken do
   include ApiGuard::JwtAuth::JsonWebToken
 
@@ -42,6 +42,32 @@ describe ApiGuard::JwtAuth::JsonWebToken do
       token = JWT.encode(expired_payload, ApiGuard.token_signing_secret, 'HS256')
 
       expect { decode(token) }.to raise_error(JWT::ExpiredSignature)
+    end
+  end
+
+  describe 'with expiry verification relaxed, as on the refresh path (A1)' do
+    it 'accepts an expired but authentically signed token' do
+      token = JWT.encode(expired_payload, ApiGuard.token_signing_secret, 'HS256')
+
+      expect(decode(token, false)[:user_id]).to eq(1)
+    end
+
+    it 'still rejects a token signed with a different secret' do
+      token = JWT.encode(payload, other_secret, 'HS256')
+
+      expect { decode(token, false) }.to raise_error(JWT::VerificationError)
+    end
+
+    it 'still rejects a token signed with HS512' do
+      token = JWT.encode(payload, ApiGuard.token_signing_secret, 'HS512')
+
+      expect { decode(token, false) }.to raise_error(JWT::IncorrectAlgorithm)
+    end
+
+    it "still rejects an unsigned 'alg: none' token" do
+      token = JWT.encode(payload, nil, 'none')
+
+      expect { decode(token, false) }.to raise_error(JWT::DecodeError)
     end
   end
 end

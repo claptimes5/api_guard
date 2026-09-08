@@ -33,7 +33,7 @@ describe 'Refresh token - User', type: :request do
 
       it 'should return 401 - missing refresh token' do
         user = create(:user)
-        access_token = jwt_and_refresh_token(user, 'user')
+        access_token = jwt_and_refresh_token(user, 'user')[0]
 
         post '/users/tokens', headers: { 'Authorization': "Bearer #{access_token}" }
 
