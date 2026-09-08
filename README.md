@@ -11,6 +11,34 @@ built on Rails.
 This is built using [Ruby JWT](https://github.com/jwt/ruby-jwt) gem. Currently API Guard supports only HS256 algorithm 
 for cryptographic signing.
 
+## Security status of this fork
+
+Upstream `Gokul595/api_guard` is unmaintained (last release 2022-03-21, last commit
+2023-02-28). This fork is the maintenance point. A source audit on 2026-09-08 raised
+six findings; this records where each one stands.
+
+**Consumers must point at this fork.** `gem "api_guard", "~> 0.6.0"` resolves to the
+published RubyGems build, which has none of the fixes below.
+
+### Fixed
+
+| # | Finding | Fix |
+|---|---|---|
+| A1 | The refresh endpoint (`tokens#create`) decoded with verification disabled entirely, so an access token signed with *any* secret was accepted | `decode` now always verifies the signature; its second argument relaxes only expiry, and is named `verify_expiry` to say so |
+| A2 | No algorithm allowlist on `JWT.decode`, leaving the gem reliant on whatever the `jwt` gem happens to default to | `algorithm: 'HS256'` is passed explicitly and pinned by specs, so a `jwt` upgrade that widened defaults cannot silently reopen algorithm confusion |
+
+### Open, with reasons
+
+| # | Finding | Why it is still open |
+|---|---|---|
+| A3 | `set_resource_name_from_token` returns the first matching `*_id` claim, so a token carrying two resource claims resolves by iteration order | Latent, not live: unambiguous while an app maps a single resource. **This becomes a prerequisite, not an option, the moment a second `api_guard` resource is added.** The fix is an `aud` claim, set before it is verified, or every live token is rejected on deploy. |
+| A4 | Refresh tokens are stored in plaintext, so read access to `refresh_tokens` yields working credentials | Needs a migration. Add an indexed unique `token_digest`, store `Digest::SHA256.hexdigest(raw)`, look up by digest, and drop `token` in a *later* deploy so rollback stays possible. Plain SHA-256 is correct here — these are 128-bit random values, not guessable passwords, so a slow KDF only adds latency. Backfill `token_digest` from the plaintext before dropping the column and no session is invalidated. |
+| A5 | `token_signing_secret` falls back to `secret_key_base`, so one leak compromises cookies and API tokens together, and neither can be rotated independently | Configuration, not a code defect: set `config.token_signing_secret`. Doing so invalidates every live token, so it wants a scheduled deploy. Verify the credential is present in every environment first — a missing key silently falls back to `secret_key_base` and looks like it worked. |
+| A6 | `blacklist_token_after_refreshing` defaults to `false`, so a rotated access token stays valid until `exp` (default 1 day) | Deliberate default; changing it costs a DB lookup on every authenticated request and requires a `blacklisted_tokens` table. Shortening `token_validity` shrinks the same window with no schema change. Do not enable blacklisting on a build without the A1 fix: `blacklist_token` writes `@decoded_token[:exp]` into `expire_at`, which was attacker-controlled on the unverified refresh path. |
+
+Rails 8.1 compatibility is tracked separately and is not one of these findings.
+
+
 ## Table of Contents
 
 * [Installation](#installation)
